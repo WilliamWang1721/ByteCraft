@@ -1,7 +1,7 @@
 // 文件路径：src/main.cpp
 
 #include <iostream>
-#include "self_test.h"
+#include "hardware_info.h"
 #include "language_manager.h"
 
 int main() {
@@ -15,19 +15,12 @@ int main() {
     std::cin >> langChoice;
     langManager.setLanguage(langChoice);
 
-    // 进行字节工具箱自检
-    SelfTest selfTest;
-    if (!selfTest.runAllTests()) {
-        std::cout << "工具箱自检失败，请查看 error_log.txt 获取详细信息。" << std::endl;
-        return 1;  // 自检失败，退出程序
-    }
-
-    // 如果自检通过，继续进入主程序
+    // 提供硬件检测选项
     while (choice != 0) {
         std::cout << "=== " << langManager.getText("menu.title") << " ===" << std::endl;
-        std::cout << "1. " << langManager.getText("menu.system_info") << std::endl;
-        std::cout << "2. " << langManager.getText("menu.performance_monitor") << std::endl;
-        std::cout << "3. " << langManager.getText("menu.network_tools") << std::endl;
+        std::cout << "1. 常规硬件检测" << std::endl;
+        std::cout << "2. 全面深度硬件检测" << std::endl;
+        std::cout << "3. 选择性硬件检测" << std::endl;
         std::cout << "0. " << langManager.getText("menu.exit") << std::endl;
 
         std::cout << langManager.getText("menu.select_option") << ": ";
@@ -35,13 +28,16 @@ int main() {
 
         switch (choice) {
             case 1:
-                std::cout << "查看系统信息..." << std::endl;
+                HardwareInfo::performBasicCheck();
                 break;
             case 2:
-                std::cout << "开始性能监控..." << std::endl;
+                HardwareInfo::performFullCheck();
                 break;
             case 3:
-                std::cout << "运行网络诊断..." << std::endl;
+                std::cout << "请输入要检测的硬件（CPU, Memory, Disk, GPU）: ";
+                std::string component;
+                std::cin >> component;
+                HardwareInfo::performSelectiveCheck(component);
                 break;
             case 0:
                 std::cout << langManager.getText("menu.exit_message") << std::endl;
