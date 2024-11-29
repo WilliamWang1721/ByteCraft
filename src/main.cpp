@@ -1,6 +1,7 @@
 // 文件路径：src/main.cpp
 
 #include <iostream>
+#include "self_test.h"
 #include "language_manager.h"
 
 int main() {
@@ -8,12 +9,20 @@ int main() {
     int langChoice = 0;
 
     LanguageManager langManager;
-
+    
     // 选择语言
     std::cout << "选择语言: 1. 中文 2. English" << std::endl;
     std::cin >> langChoice;
     langManager.setLanguage(langChoice);
 
+    // 进行字节工具箱自检
+    SelfTest selfTest;
+    if (!selfTest.runAllTests()) {
+        std::cout << "工具箱自检失败，请查看 error_log.txt 获取详细信息。" << std::endl;
+        return 1;  // 自检失败，退出程序
+    }
+
+    // 如果自检通过，继续进入主程序
     while (choice != 0) {
         std::cout << "=== " << langManager.getText("menu.title") << " ===" << std::endl;
         std::cout << "1. " << langManager.getText("menu.system_info") << std::endl;
