@@ -1,11 +1,10 @@
-// 文件路径：src/modules/hardware_info.cpp
-
 #include "hardware_info.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <cstdlib>  // For system calls
 #include <cstring>
+#include <unistd.h>
 
 void HardwareInfo::performBasicCheck() {
     std::stringstream report;
@@ -51,39 +50,81 @@ void HardwareInfo::performSelectiveCheck(const std::string& component) {
 }
 
 void HardwareInfo::checkCPU() {
-    // 在此添加针对 CPU 的检测逻辑
-    std::string cpuInfo = "CPU信息: Intel i7-9700K\n"; // 示例数据
-    std::cout << cpuInfo;
+    std::string cpuInfo;
+    #ifdef _WIN32
+        cpuInfo = getCommandOutput("wmic cpu get caption");
+    #elif __linux__
+        cpuInfo = getCommandOutput("lscpu | grep 'Model name'");
+    #elif __APPLE__
+        cpuInfo = getCommandOutput("sysctl -n machdep.cpu.brand_string");
+    #endif
+
+    std::cout << "CPU信息: " << cpuInfo << std::endl;
 }
 
 void HardwareInfo::checkMemory() {
-    // 在此添加内存检测逻辑
-    std::string memoryInfo = "内存信息: 16GB DDR4\n"; // 示例数据
-    std::cout << memoryInfo;
+    std::string memoryInfo;
+    #ifdef _WIN32
+        memoryInfo = getCommandOutput("wmic memorychip get capacity");
+    #elif __linux__
+        memoryInfo = getCommandOutput("free -h | grep Mem");
+    #elif __APPLE__
+        memoryInfo = getCommandOutput("sysctl hw.memsize");
+    #endif
+
+    std::cout << "内存信息: " << memoryInfo << std::endl;
 }
 
 void HardwareInfo::checkDisk() {
-    // 在此添加硬盘检测逻辑
-    std::string diskInfo = "硬盘信息: 512GB SSD\n"; // 示例数据
-    std::cout << diskInfo;
+    std::string diskInfo;
+    #ifdef _WIN32
+        diskInfo = getCommandOutput("wmic diskdrive get caption, size");
+    #elif __linux__
+        diskInfo = getCommandOutput("lsblk");
+    #elif __APPLE__
+        diskInfo = getCommandOutput("diskutil list");
+    #endif
+
+    std::cout << "硬盘信息: " << diskInfo << std::endl;
 }
 
 void HardwareInfo::checkGPU() {
-    // 在此添加 GPU 检测逻辑
-    std::string gpuInfo = "GPU信息: NVIDIA GeForce GTX 1080\n"; // 示例数据
-    std::cout << gpuInfo;
+    std::string gpuInfo;
+    #ifdef _WIN32
+        gpuInfo = getCommandOutput("wmic path win32_videocontroller get caption");
+    #elif __linux__
+        gpuInfo = getCommandOutput("lspci | grep VGA");
+    #elif __APPLE__
+        gpuInfo = getCommandOutput("system_profiler SPDisplaysDataType");
+    #endif
+
+    std::cout << "GPU信息: " << gpuInfo << std::endl;
 }
 
 void HardwareInfo::checkTemperature() {
-    // 假设这是获取温度的逻辑
-    std::string temperatureInfo = "温度信息: CPU 45°C, GPU 40°C\n"; // 示例数据
-    std::cout << temperatureInfo;
+    std::string temperatureInfo;
+    #ifdef _WIN32
+        temperatureInfo = getCommandOutput("wmic /namespace:\\\\root\\wmi PATH MSAcpi_ThermalZoneTemperature get CurrentTemperature");
+    #elif __linux__
+        temperatureInfo = getCommandOutput("sensors | grep 'Core 0'");
+    #elif __APPLE__
+        temperatureInfo = getCommandOutput("osx-cpu-temp");
+    #endif
+
+    std::cout << "温度信息: " << temperatureInfo << std::endl;
 }
 
 void HardwareInfo::checkSMART() {
-    // 假设这是 S.M.A.R.T 健康检测的逻辑
-    std::string smartInfo = "硬盘健康状态: 正常\n"; // 示例数据
-    std::cout << smartInfo;
+    std::string smartInfo;
+    #ifdef _WIN32
+        smartInfo = getCommandOutput("wmic diskdrive get status");
+    #elif __linux__
+        smartInfo = getCommandOutput("smartctl -a /dev/sda");
+    #elif __APPLE__
+        smartInfo = getCommandOutput("diskutil info /dev/disk0 | grep 'SMART Status'");
+    #endif
+
+    std::cout << "硬盘健康状态: " << smartInfo << std::endl;
 }
 
 void HardwareInfo::logToFile(const std::string& content) {
@@ -93,4 +134,20 @@ void HardwareInfo::logToFile(const std::string& content) {
         logFile.close();
         std::cout << "信息已导出至 hardware_info.txt\n";
     }
+}
+
+std::string HardwareInfo::getCommandOutput(const std::string& command) {
+    char buffer[128];
+    std::string result = "";
+    FILE* pipe = popen(command.c_str(), "r");
+    if (!pipe) {
+        std::cerr << "无法执行命令: " << command << std::endl;
+        return result;
+    }
+
+    while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
+        result += buffer;
+    }
+    pclose(pipe);
+    return result;
 }
