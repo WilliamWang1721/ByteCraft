@@ -4,8 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include "system_info.h"  // 假设您已有 system_info.cpp 模块
-#include "performance_monitor.h"  // 假设您已有 performance_monitor.cpp 模块
-#include "network_tools.h"  // 假设您已有 network_tools.cpp 模块
+
 
 bool SelfTest::runAllTests() {
     bool result = true;
