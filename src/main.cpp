@@ -1,8 +1,7 @@
 #include <iostream>
 #include "hardware_info.h"
 #include "language_manager.h"
-#include "performance_monitor.h"  // 如果需要性能监控模块
-#include "network_tools.h"  // 如果需要网络工具模块
+
 
 int main() {
     int choice = -1;
